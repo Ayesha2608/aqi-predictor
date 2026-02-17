@@ -19,7 +19,7 @@ Pipelines (hourly data fetching aur training) ko chalane ke liye GitHub ko aapke
 3. Left side par **Secrets and variables** > **Actions** par click karein.
 4. **"New repository secret"** par click karein aur ye teen cheezein bari bari add karein:
    - Name: `MONGODB_URI` | Value: (Aapka MongoDB connection string)
-   - Name: `MONGODB_DB` | Value: `air_quality_db`
+   - Name: `MONGODB_DB` | Value: `aqi_predictor`
    - Name: `OPENWEATHER_API_KEY` | Value: (Aapka API key)
 5. **Variables** tab par switch karein (Secrets ke saath hi hota hai) aur "New repository variable" par click karein:
    - Name: `AQI_CITY` | Value: `Karachi`
