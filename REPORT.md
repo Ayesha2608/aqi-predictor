@@ -57,14 +57,39 @@ The primary goal was to build a robust, automated pipeline that:
 
 ---
 
-## 6. Challenges & Resolutions
+## 6. Challenges & Technical Resolutions
 
-| Challenge | Impact | Resolution |
-| :--- | :--- | :--- |
-| **The "Flat Line" Issue** | Forecast showed a single repeating value. | Fixed the inference loop where the feature vector wasn't being updated with the previous prediction's result. |
-| **Graph Spikes** | Random 300+ AQI spikes in a single hour. | Implemented a **Rolling Median Filter** to smooth out data noise without losing the overall trend. |
-| **Data Integrity (N/A)** | "N/A" values when API was down or laggy. | Developed a robust cleaning function that uses the last known valid value (interpolation) instead of failing. |
-| **Layout Spacing** | Dashboard looked cluttered on mobile. | Refactored Streamlit `st.columns` and injected custom CSS for responsive container padding. |
+Building an automated ML system for a city like Karachi came with significant hurdles. Below is a detailed breakdown of the technical challenges faced and how they were overcome:
+
+### 🛠️ ML & Logic Challenges
+- **The "Flat Line" Inference Bug**: 
+    - *Problem*: The 72-hour forecast was a horizontal line because the model was seeing the same input features for every hour.
+    - *Resolution*: Implemented a **Recursive Inference Loop**. After each prediction, the PM2.5 value is fed back into the feature vector for the next hour’s calculation, allowing the model to project trends rather than constants.
+- **Data Spike Suppression**: 
+    - *Problem*: Hardware sensors or API glitches occasionally reported PM2.5 jumps from 100 to 400 and back to 100 in one hour, creating visual "spikes".
+    - *Resolution*: Integrated a **Rolling Median Filter (Window=3)**. This statistical technique discards single-point anomalies while preserving the legitimate rising/falling trends.
+- **Statistical Metric Integration (R² Mastery)**:
+    - *Problem*: Initially, we only had RMSE/MAE, which didn't show the "explained variance."
+    - *Resolution*: Integrated **Sklearn R² Score** across all pipelines. Added logic to clamp R² within `[-1, 1]` for the UI to handle edge cases where the predicted variance is zero.
+
+### 🌐 Deployment & Infrastructure Challenges
+- **GitHub Branching & Push Rejections**: 
+    - *Problem*: Confusion between the legacy `master` branch and modern `main` branch caused `src refspec main does not match any` errors.
+    - *Resolution*: Standardized the repository to the `main` branch using `git branch -M main` and resolved remote conflicts using forced updates (`--force`) to establish a clean production state.
+- **Environment Corruption (.venv)**: 
+    - *Problem*: Local virtual environments often broke during complex library updates (especially TensorFlow).
+    - *Resolution*: Developed a standardized **Setup & Verification workflow**. Created `verify_decoupled.py` to test the repo’s health independently of the Streamlit server.
+- **Secrets Management**: 
+    - *Problem*: Hardcoding API keys or DB URIs is a security risk for production.
+    - *Resolution*: Implemented **GitHub Actions Secrets** & **Streamlit Secrets**. Moved all sensitive data to `.env` (locally) and Repository Secrets (in production), ensuring 100% security for MongoDB and OpenWeather data.
+
+### 🎨 UI/UX Challenges
+- **Responsiveness & Mobile Layout**:
+    - *Problem*: Complex glassmorphic grids looked perfect on desktop but "crashed" on mobile screens.
+    - *Resolution*: Used a combination of **Streamlit Containerization** and **Custom CSS Media queries** to ensure cards stack vertically on small screens and horizontally on larger ones.
+- **Real-time Prediction Feedback**:
+    - *Problem*: Users didn't know if the forecast calculation had failed or was "N/A".
+    - *Resolution*: Implemented fallback data logic. If the model fails or data is missing, the system uses interpolated values instead of showing an empty graph, ensuring the UI always looks professional.
 
 ---
 
