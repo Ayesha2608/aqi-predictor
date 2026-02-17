@@ -248,14 +248,22 @@ def main():
     st.markdown("**Real-time monitoring & 72-hour forecast** · Modern ensemble modeling.")
 
     # --- Top Refresh Action ---
-    if st.button("🔄 Refresh Data", key="btn_refresh_v12", width="stretch"):
-        with st.spinner("Refreshing data and running model pipeline..."):
-            try:
-                subprocess.run(["python", "scripts/master_pipeline.py"], check=True)
-                st.success("✅ Refresh complete! Latest predictions active.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"❌ Refresh failed: {e}")
+    # Note: Refresh button disabled on Streamlit Cloud (subprocess not supported)
+    # Data automatically refreshes via GitHub Actions hourly pipeline
+    import os
+    is_cloud = os.getenv("STREAMLIT_SHARING_MODE") or "streamlit.app" in os.getenv("HOSTNAME", "")
+    
+    if not is_cloud:
+        if st.button("🔄 Refresh Data", key="btn_refresh_v12", use_container_width=True):
+            with st.spinner("Refreshing data and running model pipeline..."):
+                try:
+                    subprocess.run(["python", "scripts/master_pipeline.py"], check=True)
+                    st.success("✅ Refresh complete! Latest predictions active.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Refresh failed: {e}")
+    else:
+        st.info("ℹ️ Data updates automatically every hour via GitHub Actions. Last update: check your workflows.")
     st.markdown("---")
     
     # --- Load Data ---
