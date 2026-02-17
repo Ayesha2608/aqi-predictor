@@ -78,8 +78,9 @@ def predict_hourly_forecast():
     
     # Deduplicate: keep the latest record for each unique timestamp
     df_features = df_features.sort_values(ts_col).drop_duplicates(subset=[ts_col], keep='last')
-    # Keep only future rows (or very recent current)
-    now = datetime.now(df_features[ts_col].iloc[0].tzinfo if df_features[ts_col].iloc[0].tz else None)
+    
+    # Use UTC for alignment with MongoDB data
+    now = datetime.now(timezone.utc)
     df_future = df_features[df_features[ts_col] >= now - timedelta(hours=1)].copy()
     
     if df_future.empty:
