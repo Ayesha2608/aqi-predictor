@@ -7,6 +7,7 @@ Web Application Dashboard (per requirements):
 - SHAP feature importance (Advanced Analytics)
 """
 import sys
+import os
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import numpy as np
