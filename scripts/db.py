@@ -32,11 +32,13 @@ def get_db():
 
 
 def save_features(features_df: pd.DataFrame, city: str = "London") -> int:
-    """Insert feature rows into Feature Store. Each row = one document."""
+    """Insert feature rows into Feature Store with upsert (deduplication)."""
     db = get_db()
     coll = db[FEATURES_COLLECTION]
-    # Convert timestamps for JSON serialization
+    from pymongo import UpdateOne
+    
     records = features_df.to_dict(orient="records")
+    ops = []
     for r in records:
         r["city"] = city
         for k, v in r.items():
@@ -44,8 +46,15 @@ def save_features(features_df: pd.DataFrame, city: str = "London") -> int:
                 r[k] = v.isoformat() if hasattr(v, "isoformat") else str(v)
             elif isinstance(v, (float,)) and (pd.isna(v) or v != v):
                 r[k] = None
-    result = coll.insert_many(records)
-    return len(result.inserted_ids)
+        
+        # Identity fields for deduplication
+        query = {"timestamp": r["timestamp"], "city": city}
+        ops.append(UpdateOne(query, {"$set": r}, upsert=True))
+    
+    if ops:
+        result = coll.bulk_write(ops)
+        return result.upserted_count + result.modified_count
+    return 0
 
 
 def load_features(
@@ -74,14 +83,18 @@ def load_features(
 
 
 def get_latest_features(city: str = "London", n_days: int = 7) -> pd.DataFrame:
-    """Get most recent feature rows for inference."""
+    """Get most recent feature rows for inference. High limit to handle history + forecast."""
     db = get_db()
     coll = db[FEATURES_COLLECTION]
-    cursor = coll.find({"city": city}).sort("timestamp", DESCENDING).limit(n_days * 24)
+    # Fetch a large buffer (e.g. 1000 rows) to ensure we get past any duplicates/overlaps
+    cursor = coll.find({"city": city}).sort("timestamp", DESCENDING).limit(1000)
     docs = list(cursor)
     if not docs:
         return pd.DataFrame()
-    return pd.DataFrame(docs).sort_values("timestamp").reset_index(drop=True)
+    df = pd.DataFrame(docs)
+    # Final safety deduplication on read
+    df = df.sort_values("timestamp").drop_duplicates(subset=["timestamp"], keep="last")
+    return df.reset_index(drop=True)
 
 
 # ---------- Model Registry ----------
