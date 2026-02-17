@@ -274,6 +274,11 @@ def train_and_evaluate(
         json.dump({"best": best_metrics, "all_models_comparison": all_models_metrics}, f, indent=2)
 
     # Register in Model Registry (MongoDB) with all 3 models' comparison
+    model_binary = None
+    if model_path.exists():
+        with open(model_path, "rb") as f:
+            model_binary = f.read()
+
     save_model_metadata(
         model_path=model_path_for_registry,
         metrics=best_metrics,
@@ -281,6 +286,7 @@ def train_and_evaluate(
         set_production=True,
         target_day=target_day,
         all_models_comparison=all_models_metrics,
+        model_binary=model_binary,
     )
 
     return best_model, best_metrics, feature_names
