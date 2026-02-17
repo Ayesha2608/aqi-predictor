@@ -1,0 +1,18 @@
+# AQI Predictor — dark bluish weather theme
+# https://docs.streamlit.io/library/advanced-features/theming
+
+[theme]
+primaryColor = "#5dade2"
+backgroundColor = "#0f1419"
+secondaryBackgroundColor = "#1a2332"
+textColor = "#e6edf3"
+font = "sans serif"
+
+[server]
+# Smooth experience: no file watcher popup, headless for deploy
+headless = true
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false

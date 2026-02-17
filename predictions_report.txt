@@ -1,0 +1,8 @@
+AQI FORECAST REPORT
+===================
+Today's AQI (Latest Real-time): 108.0
+
+Predicted AQI (Next 3 Days):
+  Day +1 (Tomorrow):     124.8
+  Day +2 (Day after):    80.5
+  Day +3 (3 days ahead): 5.0

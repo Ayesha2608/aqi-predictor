@@ -1,0 +1,32 @@
+# Feature pipeline: runs every hour (once per hour).
+# Daily training runs once per day only — see training_pipeline.yml
+name: Feature pipeline (hourly)
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # Every hour at minute 0 (e.g. 1:00, 2:00, 3:00...)
+  workflow_dispatch:
+
+jobs:
+  feature-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run hourly feature pipeline (API → features → Feature Store only)
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ secrets.MONGODB_DB }}
+          AQI_CITY: ${{ vars.AQI_CITY }}
+          AQI_LAT: ${{ vars.AQI_LAT }}
+          AQI_LON: ${{ vars.AQI_LON }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+        run: python scripts/run_hourly_feature_pipeline.py

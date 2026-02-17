@@ -1,0 +1,29 @@
+# Env and secrets
+.env
+.env.local
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env/
+
+# Data and models (optional: remove if you want to commit sample data)
+data/raw/*.json
+models/*.joblib
+metrics/*.json
+metrics/*.png
+metrics/*.csv
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
