@@ -1,5 +1,3 @@
-import sys
-from pathlib import Path
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
@@ -20,7 +18,7 @@ def verify_db():
     # Check Features
     features_coll = db["aqi_features"]
     f_count = features_coll.count_documents({})
-    print(f"\n--- Features ---")
+    print("\n--- Features ---")
     print(f"Total rows: {f_count}")
     if f_count > 0:
         latest = features_coll.find_one(sort=[("timestamp", -1)])
@@ -30,7 +28,7 @@ def verify_db():
     # Check Models
     models_coll = db["models"]
     m_count = models_coll.count_documents({})
-    print(f"\n--- Models ---")
+    print("\n--- Models ---")
     print(f"Total models: {m_count}")
     
     production_models = list(models_coll.find({"production": True}))

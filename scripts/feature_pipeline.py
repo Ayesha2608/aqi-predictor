@@ -154,7 +154,6 @@ def compute_features_from_raw(raw: dict) -> pd.DataFrame:
         return compute_features_from_raw_openweather(raw)
     aq = raw.get("air_quality", {}).get("hourly", {})
     weather = raw.get("weather", {})
-    date_str = raw.get("date", "")
 
     if not aq or "time" not in aq:
         return pd.DataFrame()
