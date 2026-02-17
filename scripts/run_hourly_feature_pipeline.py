@@ -8,7 +8,7 @@ Training runs on this live hourly data (full day) when daily training runs.
 """
 import sys
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 def run_hourly():
