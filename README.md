@@ -14,7 +14,7 @@ End-to-end ML pipeline to **predict Air Quality Index (AQI)** for your city for 
 
 ## Quick start
 
-For a detailed, step-by-step master guide, see **[COMPLETE_GUIDE.md](COMPLETE_GUIDE.md)**.
+For a detailed, step-by-step master guide, see **[COMPLETE_GUIDE.txt](COMPLETE_GUIDE.txt)**.
 
 1. **Setup** (see [SETUP.md](SETUP.md) for details):
    - Python 3.10+, `pip install -r requirements.txt`
@@ -64,4 +64,4 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for a step-by-step guide on deploying to Stre
 
 ## Report
 
-See `IMPLEMENTATION_PLAN.md` for the 3-day implementation plan and `REPORT.md` (to be added) for a short project report.
+See `REPORT.md` for a short project report and finalized implementation details.
