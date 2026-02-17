@@ -12,6 +12,9 @@ print("="*70)
 print("AQI PREDICTIONS - NEXT 3 DAYS")
 print("="*70)
 
+# Get predictions
+preds, metrics, err = predict_next_3_days()
+
 # Get Today's AQI from Feature Store
 latest_df = get_latest_features(city=DEFAULT_CITY, n_days=1)
 today_aqi = None

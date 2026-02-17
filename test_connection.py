@@ -66,12 +66,11 @@ def test_config_import():
     print("\n3️⃣ Testing Config Import...")
     try:
         from config.settings import (
-            MONGODB_URI,
             MONGODB_DB,
             DEFAULT_CITY,
             OPENWEATHER_API_KEY
         )
-        print(f"✅ Config loaded successfully")
+        print("✅ Config loaded successfully")
         print(f"   City: {DEFAULT_CITY}")
         print(f"   DB: {MONGODB_DB}")
         print(f"   OpenWeather Key: {'Set ✅' if OPENWEATHER_API_KEY else 'Not set ⚠️'}")
