@@ -17,8 +17,8 @@ def run_hourly():
     Fetches today + next 3 days to ensure forecasts are available.
     """
     total_saved = 0
-    # Fetch today + next 3 days
-    for i in range(4):
+    # Fetch today + next 5 days (6 days total buffer)
+    for i in range(6):
         dt = datetime.now(timezone.utc) + timedelta(days=i)
         date = dt.strftime("%Y-%m-%d")
         try:
