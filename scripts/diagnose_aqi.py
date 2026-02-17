@@ -8,7 +8,6 @@ Diagnostic script to check AQI prediction issues:
 import sys
 from pathlib import Path
 import pandas as pd
-import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import KARACHI_REFERENCE_AQI, DEFAULT_CITY
@@ -58,7 +57,7 @@ def check_training_distribution():
     
     print(f"Total rows: {len(df)}")
     print(f"Valid US AQI rows: {len(aqi_col)}")
-    print(f"\nUS AQI Statistics:")
+    print("\nUS AQI Statistics:")
     print(f"  Min:  {aqi_col.min():6.1f}")
     print(f"  Max:  {aqi_col.max():6.1f}")
     print(f"  Mean: {aqi_col.mean():6.1f}")
@@ -68,7 +67,7 @@ def check_training_distribution():
     # Check PM2.5 distribution
     pm25_col = pd.to_numeric(df["pm2_5"], errors="coerce").dropna()
     if len(pm25_col) > 0:
-        print(f"\nPM2.5 Statistics:")
+        print("\nPM2.5 Statistics:")
         print(f"  Min:  {pm25_col.min():6.1f} ug/m3")
         print(f"  Max:  {pm25_col.max():6.1f} ug/m3")
         print(f"  Mean: {pm25_col.mean():6.1f} ug/m3")
@@ -118,7 +117,7 @@ def check_feature_leakage():
         corr = X.corrwith(y)
         high_corr = corr[abs(corr) > 0.8]
         if len(high_corr) > 0:
-            print(f"\nWARNING: Features with very high correlation (>0.8) to target:")
+            print("\nWARNING: Features with very high correlation (>0.8) to target:")
             for feat, val in high_corr.items():
                 print(f"   {feat}: {val:.3f}")
         else:
@@ -143,7 +142,7 @@ def check_calibration():
     ]
     
     print(f"Reference AQI: {KARACHI_REFERENCE_AQI}")
-    print(f"\nCalibration results:")
+    print("\nCalibration results:")
     for stored, label in test_values:
         calibrated = calibrate_aqi(stored)
         change = calibrated - stored

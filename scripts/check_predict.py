@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from scripts.db import get_latest_features, get_production_model
+from scripts.db import get_latest_features
 from scripts.model_loader import load_model_for_day
 from config.settings import KARACHI_REFERENCE_AQI, AQI_CALIBRATION_ENABLED
 

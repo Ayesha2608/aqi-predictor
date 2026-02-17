@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 # Avoid importing from app.dashboard to prevent side effects
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from scripts.db import get_latest_features, get_db
+from scripts.db import get_latest_features
 from scripts.model_loader import load_model_for_day
 from config.settings import DEFAULT_CITY, KARACHI_REFERENCE_AQI, AQI_CALIBRATION_ENABLED
 
@@ -25,8 +25,10 @@ def prepare_inference_row(row: pd.Series, feature_names: list, as_dataframe: boo
     X = []
     for c in feature_names:
         val = row.get(c, 0.0)
-        try: X.append(float(val) if pd.notna(val) else 0.0)
-        except: X.append(0.0)
+        try:
+            X.append(float(val) if pd.notna(val) else 0.0)
+        except (ValueError, TypeError):
+            X.append(0.0)
     arr = np.array(X).reshape(1, -1)
     return pd.DataFrame(arr, columns=feature_names) if as_dataframe else arr
 

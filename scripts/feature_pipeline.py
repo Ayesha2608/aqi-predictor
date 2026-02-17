@@ -5,7 +5,7 @@ Stores results in Feature Store (MongoDB).
 import json
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -15,7 +15,6 @@ from config.settings import (
     DEFAULT_CITY,
     DEFAULT_LAT,
     DEFAULT_LON,
-    FORECAST_DAYS,
     TIMEZONE,
 )
 from scripts.fetch_raw_data import fetch_raw_for_date

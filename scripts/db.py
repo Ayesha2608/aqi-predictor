@@ -1,7 +1,7 @@
 """
 MongoDB client and Feature Store / Model Registry helpers.
 """
-import json
+
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -17,7 +17,6 @@ from config.settings import (
     FEATURES_COLLECTION,
     MODELS_COLLECTION,
     ALERTS_COLLECTION,
-    MODELS_DIR,
 )
 
 

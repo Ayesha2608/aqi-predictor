@@ -4,20 +4,13 @@ from pathlib import Path
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from app.dashboard import predict_next_3_days
-from scripts.db import get_production_model
+from app.dashboard import predict_next_3_days, calibrate_aqi
+from scripts.db import get_production_model, get_latest_features
+from config.settings import DEFAULT_CITY
 
 print("="*70)
 print("AQI PREDICTIONS - NEXT 3 DAYS")
 print("="*70)
-
-from scripts.db import get_latest_features
-from config.settings import DEFAULT_CITY
-
-# Get predictions
-preds, metrics, err = predict_next_3_days()
-
-from app.dashboard import calibrate_aqi
 
 # Get Today's AQI from Feature Store
 latest_df = get_latest_features(city=DEFAULT_CITY, n_days=1)
@@ -46,7 +39,7 @@ with open("predictions_report.txt", "w", encoding="utf-8") as f:
 if err:
     print(f"Error: {err}")
 else:
-    print(f"\nPredicted AQI:")
+    print("\nPredicted AQI:")
     print(f"  Day +1 (Tomorrow):     {preds[0]:.1f}" if preds[0] else "  Day +1: N/A")
     print(f"  Day +2 (Day after):    {preds[1]:.1f}" if preds[1] else "  Day +2: N/A")
     print(f"  Day +3 (3 days ahead): {preds[2]:.1f}" if preds[2] else "  Day +3: N/A")
@@ -67,7 +60,7 @@ for day in [1, 2, 3]:
         
         # Show all models comparison
         if doc.get("all_models_comparison"):
-            print(f"  All 3 models trained:")
+            print("  All 3 models trained:")
             for model in doc["all_models_comparison"]:
                 status = "[SELECTED]" if model["model"] == m.get("model") else ""
                 print(f"    - {model['model']}: RMSE={model['rmse']:.4f} {status}")

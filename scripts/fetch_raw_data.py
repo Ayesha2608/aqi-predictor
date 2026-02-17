@@ -6,7 +6,7 @@ Fetch raw weather and air quality data.
 import json
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 import requests
 
 # Add project root

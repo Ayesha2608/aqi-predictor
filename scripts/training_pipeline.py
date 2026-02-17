@@ -16,7 +16,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 try:
-    import tensorflow as tf
     from tensorflow import keras
     HAS_TF = True
 except ImportError:
@@ -28,7 +27,6 @@ from config.settings import (
     MODELS_DIR,
     METRICS_DIR,
     PROJECT_ROOT,
-    FEATURES_COLLECTION,
 )
 from scripts.db import load_features, save_model_metadata
 
@@ -320,7 +318,7 @@ def main():
     print("="*70)
     print("AQI PREDICTION MODEL TRAINING PIPELINE")
     print("="*70)
-    print(f"Training 3 models: Ridge, RandomForest, LSTM")
+    print("Training 3 models: Ridge, RandomForest, LSTM")
     print(f"TensorFlow available: {HAS_TF}")
     if not HAS_TF:
         print("WARNING: TensorFlow not installed. Only 2 models will be trained.")

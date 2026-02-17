@@ -12,17 +12,24 @@ Sab se pehle apne latest changes ko GitHub par bhejein:
    git push origin main
    ```
 
-### Step 2: GitHub "Secrets" Add Karein (Most Important)
-Pipelines (hourly data fetching aur training) ko chalane ke liye GitHub ko aapke passwords chahiye honge:
+### Step 2: GitHub "Secrets" aur "Variables" Add Karein (Most Important)
+Pipelines ko chalane ke liye GitHub ko aapke credentials chahiye honge. **Do alag tabs hain** - Secrets aur Variables:
+
+#### A) Secrets Tab (Passwords/Keys):
 1. Apne GitHub repository par jayein.
 2. **Settings** (top menu) par click karein.
 3. Left side par **Secrets and variables** > **Actions** par click karein.
-4. **"New repository secret"** par click karein aur ye teen cheezein bari bari add karein:
-   - Name: `MONGODB_URI` | Value: (Aapka MongoDB connection string)
+4. **"Secrets"** tab par **"New repository secret"** par click karein aur ye **teen** secrets bari bari add karein:
+   - Name: `MONGODB_URI` | Value: `mongodb+srv://aqiuser:JmSm8SxX4EFzyC56@cluster0.ujo97dt.mongodb.net/?appName=Cluster0`
    - Name: `MONGODB_DB` | Value: `aqi_predictor`
-   - Name: `OPENWEATHER_API_KEY` | Value: (Aapka API key)
-5. **Variables** tab par switch karein (Secrets ke saath hi hota hai) aur "New repository variable" par click karein:
+   - Name: `OPENWEATHER_API_KEY` | Value: (Aapka OpenWeather API key)
+
+#### B) Variables Tab (Configuration):
+5. **"Variables"** tab par switch karein (Secrets ke bagal mein) aur **"New repository variable"** par click karein.
+6. Ye **teen** variables bari bari add karein:
    - Name: `AQI_CITY` | Value: `Karachi`
+   - Name: `AQI_LAT` | Value: `24.8607`
+   - Name: `AQI_LON` | Value: `67.0011`
 
 ### Step 3: Pipelines Check Karein
 1. GitHub par **"Actions"** tab par jayein.

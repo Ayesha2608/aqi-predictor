@@ -22,7 +22,7 @@ from config.settings import (
     AQI_CALIBRATION_ENABLED,
     AQI_SCALE_1_5,
 )
-from scripts.db import get_production_model, get_latest_features, get_db
+from scripts.db import get_production_model, get_latest_features
 from scripts.model_loader import load_model_for_day
 
 
@@ -45,8 +45,10 @@ def prepare_inference_row(row: pd.Series, feature_names: list, as_dataframe: boo
     X = []
     for c in feature_names:
         val = row.get(c, 0.0)
-        try: X.append(float(val) if pd.notna(val) else 0.0)
-        except: X.append(0.0)
+        try:
+            X.append(float(val) if pd.notna(val) else 0.0)
+        except (ValueError, TypeError):
+            X.append(0.0)
     arr = np.array(X).reshape(1, -1)
     return pd.DataFrame(arr, columns=feature_names) if as_dataframe else arr
 
@@ -89,9 +91,12 @@ def predict_hourly_forecast():
     for i, (_, row) in enumerate(df_future.iterrows()):
         hour_offset = (row[ts_col] - now).total_seconds() / 3600
         # Determine which model to use based on offset
-        if hour_offset <= 24: target_day = 1
-        elif hour_offset <= 48: target_day = 2
-        else: target_day = 3
+        if hour_offset <= 24:
+            target_day = 1
+        elif hour_offset <= 48:
+            target_day = 2
+        else:
+            target_day = 3
         
         # Data Cleaning: skip rows with non-physical weather (often placeholders in DB)
         # e.g. Temp=0 or Humidity=0 is extremely unlikely/invalid for Karachi
@@ -128,13 +133,18 @@ def predict_hourly_forecast():
 
 def aqi_level_and_color(aqi: float) -> tuple:
     """Return (label, color) based on value."""
-    if aqi is None or (isinstance(aqi, float) and np.isnan(aqi)): return "N/A", "gray"
+    if aqi is None or (isinstance(aqi, float) and np.isnan(aqi)):
+        return "N/A", "gray"
     v = float(aqi)
     if v > 10 or not AQI_SCALE_1_5:
-        if v <= 50: return "Good", "#00e400"
-        if v <= 100: return "Moderate", "#ffff00"
-        if v <= 150: return "Unhealthy (sensitive)", "#ff7e00"
-        if v <= 200: return "Unhealthy", "#ff0000"
+        if v <= 50:
+            return "Good", "#00e400"
+        if v <= 100:
+            return "Moderate", "#ffff00"
+        if v <= 150:
+            return "Unhealthy (sensitive)", "#ff7e00"
+        if v <= 200:
+            return "Unhealthy", "#ff0000"
         return "Hazardous", "#7e0023"
     ranges = [("Good", "#00e400"), ("Fair", "#ffff00"), ("Moderate", "#ff7e00"), ("Poor", "#ff0000"), ("Very Poor", "#7e0023")]
     idx = int(max(1, min(5, round(v)))) - 1
@@ -143,12 +153,17 @@ def aqi_level_and_color(aqi: float) -> tuple:
 
 def get_health_recommendation(aqi: float) -> str:
     """Return detailed health recommendation based on AQI value."""
-    if aqi is None: return "N/A"
+    if aqi is None:
+        return "N/A"
     v = float(aqi)
-    if v <= 50: return "🟢 Air quality is satisfactory; outdoor activity is safe."
-    if v <= 100: return "🟡 Sensitive groups should consider reducing prolonged outdoor exertion."
-    if v <= 150: return "🟠 Sensitive groups should limit outdoor exertion; a mask may help."
-    if v <= 200: return "🔴 High health risk. Reduce outdoor activity and prefer indoor environments."
+    if v <= 50:
+        return "🟢 Air quality is satisfactory; outdoor activity is safe."
+    if v <= 100:
+        return "🟡 Sensitive groups should consider reducing prolonged outdoor exertion."
+    if v <= 150:
+        return "🟠 Sensitive groups should limit outdoor exertion; a mask may help."
+    if v <= 200:
+        return "🔴 High health risk. Reduce outdoor activity and prefer indoor environments."
     return "Purple Emergency. Avoid all outdoor physical activity."
 
 
@@ -436,10 +451,14 @@ def main():
             
             st.markdown("### Summary Statistics (Past 7 Days)")
             s1, s2, s3, s4 = st.columns(4)
-            with s1: st.markdown(f'<div class="stat-label">AVG PM2.5</div><div class="stat-value">{hist_df[p25].mean():.2f}</div>', unsafe_allow_html=True)
-            with s2: st.markdown(f'<div class="stat-label">AVG PM10</div><div class="stat-value">{hist_df[p10].mean():.2f}</div>', unsafe_allow_html=True)
-            with s3: st.markdown(f'<div class="stat-label">AVG TEMP</div><div class="stat-value">{hist_df[t_y].mean():.1f}°C</div>', unsafe_allow_html=True)
-            with s4: st.markdown(f'<div class="stat-label">AVG HUMIDITY</div><div class="stat-value">{hist_df["humidity"].mean():.1f}%</div>', unsafe_allow_html=True)
+            with s1:
+                st.markdown(f'<div class="stat-label">AVG PM2.5</div><div class="stat-value">{hist_df[p25].mean():.2f}</div>', unsafe_allow_html=True)
+            with s2:
+                st.markdown(f'<div class="stat-label">AVG PM10</div><div class="stat-value">{hist_df[p10].mean():.2f}</div>', unsafe_allow_html=True)
+            with s3:
+                st.markdown(f'<div class="stat-label">AVG TEMP</div><div class="stat-value">{hist_df[t_y].mean():.1f}°C</div>', unsafe_allow_html=True)
+            with s4:
+                st.markdown(f'<div class="stat-label">AVG HUMIDITY</div><div class="stat-value">{hist_df["humidity"].mean():.1f}%</div>', unsafe_allow_html=True)
 
     with t_ins:
         st.subheader("Statistical Dashboard")

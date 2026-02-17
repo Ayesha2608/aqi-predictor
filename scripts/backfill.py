@@ -11,7 +11,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import RAW_DIR, DEFAULT_CITY, DEFAULT_LAT, DEFAULT_LON
 from scripts.fetch_raw_data import fetch_raw_for_date
-from scripts.feature_pipeline import compute_features_from_raw, load_raw_file, pm25_to_us_aqi
+from scripts.feature_pipeline import compute_features_from_raw, pm25_to_us_aqi
 from scripts.db import save_features
 
 
