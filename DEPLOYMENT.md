@@ -51,10 +51,31 @@ Streamlit will install the libraries from `requirements.txt` and verify the code
 
 ---
 
-## 3. Architecture Summary (For External Explanation)
+---
+
+## 4. Continuous Integration & CD (Professional MLOps)
+**Tool:** GitHub Actions  
+**What it does:** Automatically verifies code quality and ensures the dashboard logic isn't broken before it goes to production.
+
+### Setting up GitHub Secrets (MANDATORY):
+To make the pipelines work, you must add your credentials to the GitHub Repository:
+1. Go to your GitHub Repository > **Settings** > **Secrets and variables** > **Actions**.
+2. Click **"New repository secret"** and add these:
+   - `MONGODB_URI`: Your MongoDB connection string.
+   - `MONGODB_DB`: `air_quality_db` (or whatever your DB name is).
+   - `OPENWEATHER_API_KEY`: Your OpenWeatherMap API Key.
+3. Click **"New repository variable"** and add:
+   - `AQI_CITY`: `Karachi`
+
+### Pipelines Included:
+- **`ci.yml`**: Runs on every Push/PR. It "lints" the code for errors and runs `verify_decoupled.py` to ensure predictions are still working.
+- **`deploy.yml`**: A template that triggers after CI passes, ready for you to connect to your live server.
+
+## 5. Architecture Summary (For External Explanation)
 If you need to explain this to a supervisor, say:
 > "We implemented a **Serverless MLOps Architecture**.
 > 1.  **Data Ingestion**: Handled by **GitHub Actions** (Cron jobs) which fetch weather/AQI data hourly.
 > 2.  **Storage**: Data is persisted in **MongoDB Atlas** (Cloud Database), serving as our Feature Store.
 > 3.  **Training**: A daily CI/CD pipeline retrains our models (including LSTM) on the latest data.
-> 4.  **Serving**: The user interface is a **Streamlit Web App** connected to the Cloud Feature Store, providing real-time 72-hour forecasts without manual intervention."
+> 4.  **Verification**: Automated CI tests ensure prediction variance and data integrity before every update.
+> 5.  **Serving**: The user interface is a **Streamlit Web App** connected to the Cloud Feature Store, providing real-time 72-hour forecasts."

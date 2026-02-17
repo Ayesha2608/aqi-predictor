@@ -7,9 +7,17 @@
 __pycache__/
 *.py[cod]
 *$py.class
-.venv/
+.venv*/
 venv/
 .env/
+
+# Logs and Temp Outputs
+*.log
+verify_output*.txt
+verify_decoupled_output*.txt
+predictions_output.txt
+predictions_report.txt
+temp_cols.txt
 
 # Data and models (optional: remove if you want to commit sample data)
 data/raw/*.json
