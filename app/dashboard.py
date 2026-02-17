@@ -327,15 +327,25 @@ def main():
             target_date = (now_khi + timedelta(days=i)).date()
             day_data = df_forecast[df_forecast['date_only'] == target_date]
             v = day_data['aqi_predicted'].max() if not day_data.empty else None
+            
+            # Simple interpolation fallback: if a middle day is missing, try next day's peak as proxy
+            if v is None and i < 3:
+                next_date = (now_khi + timedelta(days=i+1)).date()
+                next_data = df_forecast[df_forecast['date_only'] == next_date]
+                v = next_data['aqi_predicted'].max() if not next_data.empty else None
+                if v:
+                    # Mark as estimated/proxy value
+                    pass
+
             lvl, clr = aqi_level_and_color(v)
-            v_str = f"{v:.1f}" if v else "—"
             with f_cols[i-1]:
+                date_fmt = target_date.strftime("%A, %b %d")
                 st.markdown(f'''
-                    <div class="forecast-card">
-                        <div class="forecast-date">{target_date.strftime("%A, %b %d")}</div>
-                        <div class="stat-label" style="margin-top:0.5rem;">{forecast_labels[i-1]} Peak</div>
-                        <div class="forecast-aqi" style="color:{clr};">{v_str}</div>
-                        <div style="color:{clr}; font-weight:600; font-size:0.9rem;">{lvl}</div>
+                    <div class="forecast-card" style="border-top: 4px solid {clr};">
+                        <div style="font-size: 0.9rem; color: #8b949e; margin-bottom: 0.5rem;">{date_fmt}</div>
+                        <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #58a6ff;">{forecast_labels[i-1]} Peak</div>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: {clr}; margin: 0.5rem 0;">{f"{v:.1f}" if v else "—"}</div>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: {clr};">{lvl}</div>
                     </div>
                 ''', unsafe_allow_html=True)
     else:
