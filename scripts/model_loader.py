@@ -43,9 +43,8 @@ def load_model_for_day(target_day: int) -> Tuple[Optional[Any], Optional[list], 
                     tmp_path = tmp.name
                 try:
                     model = keras.models.load_model(tmp_path)
-                    # Feature names can't be stored in .keras binary easily without custom objects
-                    # Relying on metadata in the same doc if we added it, or returning empty
-                    feature_names = doc.get("metrics", {}).get("feature_names", [])
+                    # Feature names can be in doc directly or in metrics
+                    feature_names = doc.get("feature_names") or doc.get("metrics", {}).get("feature_names", [])
                 finally:
                     if os.path.exists(tmp_path):
                         os.remove(tmp_path)

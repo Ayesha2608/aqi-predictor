@@ -11,31 +11,31 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from config.settings import DEFAULT_CITY, DEFAULT_LAT, DEFAULT_LON
-from scripts.fetch_raw_data import fetch_raw_for_date
-from scripts.feature_pipeline import compute_features_from_raw
-from scripts.db import save_features
-
-
 def run_hourly():
     """
     Fetch current/latest data from API → extract features → clean → save to Feature Store only.
-    No CSV. No raw file (save_to_disk=False).
+    Fetches today + next 3 days to ensure forecasts are available.
     """
-    date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    raw = fetch_raw_for_date(
-        date,
-        lat=DEFAULT_LAT,
-        lon=DEFAULT_LON,
-        save_to_disk=False,
-    )
-    df = compute_features_from_raw(raw)
-    if df.empty:
-        print("Hourly: no features computed.")
-        return 0
-    n = save_features(df, city=DEFAULT_CITY)
-    print(f"Hourly: saved {n} feature rows for {date} ({DEFAULT_CITY}) to Feature Store.")
-    return n
+    total_saved = 0
+    # Fetch today + next 3 days
+    for i in range(4):
+        dt = datetime.now(timezone.utc) + timedelta(days=i)
+        date = dt.strftime("%Y-%m-%d")
+        try:
+            raw = fetch_raw_for_date(
+                date,
+                lat=DEFAULT_LAT,
+                lon=DEFAULT_LON,
+                save_to_disk=False,
+            )
+            df = compute_features_from_raw(raw)
+            if not df.empty:
+                n = save_features(df, city=DEFAULT_CITY)
+                total_saved += n
+                print(f"Hourly: saved {n} feature rows for {date} ({DEFAULT_CITY}) to Feature Store.")
+        except Exception as e:
+            print(f"Hourly: failed for {date}: {e}")
+    return total_saved
 
 
 def main():

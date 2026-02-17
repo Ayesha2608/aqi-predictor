@@ -287,6 +287,7 @@ def train_and_evaluate(
         target_day=target_day,
         all_models_comparison=all_models_metrics,
         model_binary=model_binary,
+        feature_names=feature_names,
     )
 
     return best_model, best_metrics, feature_names

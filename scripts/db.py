@@ -95,6 +95,7 @@ def save_model_metadata(
     target_day: Optional[int] = None,
     all_models_comparison: Optional[list] = None,
     model_binary: Optional[bytes] = None,
+    feature_names: Optional[list] = None,
 ) -> str:
     """Register model in Model Registry. Stores best model + all_models_comparison for UI."""
     db = get_db()
@@ -117,6 +118,8 @@ def save_model_metadata(
     if model_binary is not None:
         from bson.binary import Binary
         doc["model_binary"] = Binary(model_binary)
+    if feature_names is not None:
+        doc["feature_names"] = feature_names
     coll.insert_one(doc)
     return version
 
