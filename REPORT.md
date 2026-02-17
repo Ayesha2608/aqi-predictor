@@ -61,35 +61,35 @@ The primary goal was to build a robust, automated pipeline that:
 
 Building an automated ML system for a city like Karachi came with significant hurdles. Below is a detailed breakdown of the technical challenges faced and how they were overcome:
 
-### 🛠️ ML & Logic Challenges
-- **The "Flat Line" Inference Bug**: 
-    - *Problem*: The 72-hour forecast was a horizontal line because the model was seeing the same input features for every hour.
-    - *Resolution*: Implemented a **Recursive Inference Loop**. After each prediction, the PM2.5 value is fed back into the feature vector for the next hour’s calculation, allowing the model to project trends rather than constants.
+### 🛠️ ML Training & Prediction Challenges
+- **Early-Stage Overfitting**:
+    - *Problem*: Initial models showed 99% accuracy on training data but performed poorly on test data (RMSE was high).
+    - *Resolution*: Implemented **Regularization** (Ridge Regression) and **Pruning** (limiting Max Depth in Random Forest). Also introduced **Temporal Cross-Validation** to ensure the model was learning trends, not memorizing specific data points.
+- **The "Cold Start" Data Problem**: 
+    - *Problem*: At the start, there was no historical data in MongoDB to train the model.
+    - *Resolution*: Developed a **Backfill Script** (`backfill.py`) that fetched months of historical data from Open-Meteo's archive, creating a robust foundation for the initial training.
+- **Complexity of Recursive Inference**: 
+    - *Problem*: Predicting 72 hours ahead isn't possible with a single "predict" call. Early attempts led to "flat lines" or divergent values.
+    - *Resolution*: Developed a **Sliding Window Inference logic**. The output of Hour 1 is used as a "Lag Feature" to predict Hour 2, and so on. This maintains the physical consistency of the forecast.
+
+### 🌐 Deployment & Infrastructure Challenges
 - **Data Spike Suppression**: 
     - *Problem*: Hardware sensors or API glitches occasionally reported PM2.5 jumps from 100 to 400 and back to 100 in one hour, creating visual "spikes".
     - *Resolution*: Integrated a **Rolling Median Filter (Window=3)**. This statistical technique discards single-point anomalies while preserving the legitimate rising/falling trends.
-- **Statistical Metric Integration (R² Mastery)**:
-    - *Problem*: Initially, we only had RMSE/MAE, which didn't show the "explained variance."
-    - *Resolution*: Integrated **Sklearn R² Score** across all pipelines. Added logic to clamp R² within `[-1, 1]` for the UI to handle edge cases where the predicted variance is zero.
-
-### 🌐 Deployment & Infrastructure Challenges
 - **GitHub Branching & Push Rejections**: 
-    - *Problem*: Confusion between the legacy `master` branch and modern `main` branch caused `src refspec main does not match any` errors.
-    - *Resolution*: Standardized the repository to the `main` branch using `git branch -M main` and resolved remote conflicts using forced updates (`--force`) to establish a clean production state.
-- **Environment Corruption (.venv)**: 
-    - *Problem*: Local virtual environments often broke during complex library updates (especially TensorFlow).
-    - *Resolution*: Developed a standardized **Setup & Verification workflow**. Created `verify_decoupled.py` to test the repo’s health independently of the Streamlit server.
-- **Secrets Management**: 
-    - *Problem*: Hardcoding API keys or DB URIs is a security risk for production.
-    - *Resolution*: Implemented **GitHub Actions Secrets** & **Streamlit Secrets**. Moved all sensitive data to `.env` (locally) and Repository Secrets (in production), ensuring 100% security for MongoDB and OpenWeather data.
+    - *Problem*: Confusion between the legacy `master` branch and modern `main` branch caused numerous push failures.
+    - *Resolution*: Standardized the repository to the `main` branch and utilized forced updates (`--force`) after cleaning the git history to ensure a professional production repository.
+- **Secrets & API Security**: 
+    - *Problem*: Managing multiple keys (MongoDB, OpenWeather) across Local, GitHub Actions, and Streamlit Cloud.
+    - *Resolution*: Centralized secret management using `config/settings.py`. This allows the code to seamlessly switch between local `.env` and Cloud Environment Variables without hardcoding.
 
 ### 🎨 UI/UX Challenges
-- **Responsiveness & Mobile Layout**:
-    - *Problem*: Complex glassmorphic grids looked perfect on desktop but "crashed" on mobile screens.
-    - *Resolution*: Used a combination of **Streamlit Containerization** and **Custom CSS Media queries** to ensure cards stack vertically on small screens and horizontally on larger ones.
-- **Real-time Prediction Feedback**:
-    - *Problem*: Users didn't know if the forecast calculation had failed or was "N/A".
-    - *Resolution*: Implemented fallback data logic. If the model fails or data is missing, the system uses interpolated values instead of showing an empty graph, ensuring the UI always looks professional.
+- **The "N/A" Display Logic**:
+    - *Problem*: Before we had automated pipelines, the dashboard would often show "Calibration Data Missing" errors.
+    - *Resolution*: Implemented **Robust Fallbacks**. If live data fails, a cached version is used. If prediction fails, we display the last known trend with a "Data Refreshing" status, preventing a broken user experience.
+- **Mobile Responsiveness**:
+    - *Problem*: Complex glassmorphic cards looked cluttered on small screens.
+    - *Resolution*: Refactored the layout using a **Column-to-Grid approach** in Streamlit, ensuring that the 3-Day Forecast grid scales elegantly on mobile devices.
 
 ---
 
