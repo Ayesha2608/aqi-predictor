@@ -14,8 +14,6 @@ End-to-end ML pipeline to **predict Air Quality Index (AQI)** for your city for 
 
 ## Quick start
 
-For a detailed, step-by-step master guide, see **[COMPLETE_GUIDE.txt](COMPLETE_GUIDE.txt)**.
-
 1. **Setup** (see [SETUP.md](SETUP.md) for details):
    - Python 3.10+, `pip install -r requirements.txt`
    - MongoDB (local or Atlas), `.env` with `MONGODB_URI`, `AQI_CITY`, `AQI_LAT`, `AQI_LON`
