@@ -316,10 +316,15 @@ def main():
     f_cols = st.columns(3)
     forecast_labels = ["Tomorrow", "Day After", "Next Day"]
     
+    # Use Karachi timezone for correct local date labels
+    from zoneinfo import ZoneInfo
+    from config.settings import TIMEZONE
+    now_khi = datetime.now(ZoneInfo(TIMEZONE))
+    
     if not df_forecast.empty:
         df_forecast['date_only'] = df_forecast['timestamp'].dt.date
         for i in range(1, 4):
-            target_date = (datetime.now() + timedelta(days=i)).date()
+            target_date = (now_khi + timedelta(days=i)).date()
             day_data = df_forecast[df_forecast['date_only'] == target_date]
             v = day_data['aqi_predicted'].max() if not day_data.empty else None
             lvl, clr = aqi_level_and_color(v)
