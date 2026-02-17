@@ -109,12 +109,19 @@ def predict_hourly_forecast():
 
         model, features, is_keras = models.get(target_day, (None, None, False))
         
+        # Fallback: if day-specific model missing, try any production model (day 1 often best)
+        if not model:
+            model, features, is_keras = models.get(1, (None, None, False))
+
         pred_val = None
         if model and features:
-            X = prepare_inference_row(row, features, as_dataframe=not is_keras)
-            pred = model.predict(X, verbose=0) if is_keras else model.predict(X)
-            pred_val = float(np.ravel(pred)[0])
-            pred_val = calibrate_aqi(pred_val)
+            try:
+                X = prepare_inference_row(row, features, as_dataframe=not is_keras)
+                pred = model.predict(X, verbose=0) if is_keras else model.predict(X)
+                pred_val = float(np.ravel(pred)[0])
+                pred_val = calibrate_aqi(pred_val)
+            except Exception:
+                pred_val = None
 
         results.append({
             "timestamp": row[ts_col],
@@ -250,13 +257,13 @@ def main():
     st.markdown("**Real-time monitoring & 72-hour forecast** · Modern ensemble modeling.")
 
     # --- Top Refresh Action ---
-    # Cloud detection: check for common Streamlit Cloud env vars
+    # We only show the button if NOT on Streamlit Cloud to prevent subprocess crashes
     is_cloud = os.getenv("STREAMLIT_SHARING_MODE") == "true" or \
                "STREAMLIT_SERVER_PORT" in os.environ or \
-               "mount/src" in os.getcwd()
+               "/mount/src" in os.getcwd()
     
     if not is_cloud:
-        if st.button("🔄 Refresh Data", key="btn_refresh_v12", use_container_width=True):
+        if st.button("🔄 Refresh Data (Local)", key="btn_refresh_v13", use_container_width=True):
             with st.spinner("Refreshing data and running model pipeline..."):
                 try:
                     subprocess.run(["python", "scripts/master_pipeline.py"], check=True)
@@ -265,7 +272,7 @@ def main():
                 except Exception as e:
                     st.error(f"❌ Refresh failed: {e}")
     else:
-        st.info("ℹ️ Data updates automatically every hour via GitHub Actions. Last update: check your workflows.")
+        st.info("🕒 Global Update: Automated hourly refresh active via GitHub Actions.")
     st.markdown("---")
     
     # --- Load Data ---
