@@ -42,6 +42,7 @@ def load_model_for_day(target_day: int) -> Tuple[Optional[Any], Optional[list], 
                     tmp.write(doc["model_binary"])
                     tmp_path = tmp.name
                 try:
+                    from tensorflow import keras
                     model = keras.models.load_model(tmp_path)
                     # Feature names can be in doc directly or in metrics
                     feature_names = doc.get("feature_names") or doc.get("metrics", {}).get("feature_names", [])
@@ -49,6 +50,7 @@ def load_model_for_day(target_day: int) -> Tuple[Optional[Any], Optional[list], 
                     if os.path.exists(tmp_path):
                         os.remove(tmp_path)
             else:
+                from tensorflow import keras
                 model = keras.models.load_model(path)
                 meta_path = path.with_suffix(".keras.json")
                 feature_names = []
@@ -56,15 +58,26 @@ def load_model_for_day(target_day: int) -> Tuple[Optional[Any], Optional[list], 
                     with open(meta_path) as f:
                         feature_names = json.load(f).get("feature_names", [])
             return model, feature_names, True
-        except Exception:
+        except Exception as e:
+            print(f"Keras load failed: {e}")
             return None, None, True
     else:
-        import joblib
-        import io
-        if load_from_binary:
-            data = joblib.load(io.BytesIO(doc["model_binary"]))
-        else:
-            data = joblib.load(path)
-        model = data.get("model")
-        feature_names = data.get("feature_names", [])
-        return model, feature_names, False
+        try:
+            import joblib
+            import io
+            if load_from_binary:
+                data = joblib.load(io.BytesIO(doc["model_binary"]))
+            else:
+                data = joblib.load(path)
+            
+            if isinstance(data, dict):
+                model = data.get("model")
+                feature_names = data.get("feature_names", [])
+            else:
+                model = data
+                feature_names = doc.get("feature_names", []) or doc.get("metrics", {}).get("feature_names", [])
+            
+            return model, feature_names, False
+        except Exception as e:
+            print(f"Joblib load failed: {e}")
+            return None, None, False

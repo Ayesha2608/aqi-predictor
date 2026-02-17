@@ -249,10 +249,10 @@ def main():
     st.markdown("**Real-time monitoring & 72-hour forecast** · Modern ensemble modeling.")
 
     # --- Top Refresh Action ---
-    # Note: Refresh button disabled on Streamlit Cloud (subprocess not supported)
-    # Data automatically refreshes via GitHub Actions hourly pipeline
-    import os
-    is_cloud = os.getenv("STREAMLIT_SHARING_MODE") or "streamlit.app" in os.getenv("HOSTNAME", "")
+    # Cloud detection: check for common Streamlit Cloud env vars
+    is_cloud = os.getenv("STREAMLIT_SHARING_MODE") == "true" or \
+               "STREAMLIT_SERVER_PORT" in os.environ or \
+               "mount/src" in os.getcwd()
     
     if not is_cloud:
         if st.button("🔄 Refresh Data", key="btn_refresh_v12", use_container_width=True):
@@ -545,7 +545,8 @@ def main():
         st.info("Active")
         st.markdown("---")
         st.markdown("### 📊 Technical Specs")
-        st.caption("Model Cluster: Ensemble v2.5")
+        st.caption("Model Cluster: Ensemble v2.6 (Live)")
+        st.caption(f"Sync Clock: {datetime.now(timezone.utc).strftime('%H:%M')} UTC")
         st.caption("Base Models: XGBoost, Ridge, LSTM")
         st.caption("Optimization: Multi-Phase Grid Search")
         st.markdown("---")
