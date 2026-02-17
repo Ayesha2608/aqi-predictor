@@ -23,15 +23,22 @@ from config.settings import (
 )
 
 
-def fetch_weather(lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, date: str = None) -> dict:
-    """Fetch weather for a given date (or today)."""
-    if date is None:
-        date = datetime.utcnow().strftime("%Y-%m-%d")
+def fetch_weather(
+    lat: float = DEFAULT_LAT,
+    lon: float = DEFAULT_LON,
+    start_date: str = None,
+    end_date: str = None,
+) -> dict:
+    """Fetch weather for a given range (or today)."""
+    if start_date is None:
+        start_date = datetime.utcnow().strftime("%Y-%m-%d")
+    if end_date is None:
+        end_date = start_date
     url = (
         f"{OPEN_METEO_BASE}/forecast?"
         f"latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,"
         "precipitation_sum,relative_humidity_2m_mean,wind_speed_10m_max&"
-        f"start_date={date}&end_date={date}&timezone=auto"
+        f"start_date={start_date}&end_date={end_date}&timezone=auto"
     )
     r = requests.get(url, timeout=30)
     r.raise_for_status()
@@ -77,6 +84,24 @@ def _build_openmeteo_style_weather_from_openweather(ow_weather: dict, ow_forecas
             daily["temperature_2m_max"][0] = daily["temperature_2m_max"][0] or max(temps)
             daily["temperature_2m_min"][0] = daily["temperature_2m_min"][0] or min(temps)
     return {"daily": daily}
+
+
+def fetch_raw_range(
+    start_date: str,
+    end_date: str,
+    lat: float = DEFAULT_LAT,
+    lon: float = DEFAULT_LON,
+) -> dict:
+    """Fetch weather + air quality for a range of dates as a single payload."""
+    aq = fetch_air_quality(lat=lat, lon=lon, start_date=start_date, end_date=end_date)
+    weather = fetch_weather(lat=lat, lon=lon, start_date=start_date, end_date=end_date)
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+        "city": DEFAULT_CITY,
+        "air_quality": aq,
+        "weather": weather,
+    }
 
 
 def fetch_raw_for_date(

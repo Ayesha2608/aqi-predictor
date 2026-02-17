@@ -43,7 +43,8 @@ def save_features(features_df: pd.DataFrame, city: str = "London") -> int:
         r["city"] = city
         for k, v in r.items():
             if isinstance(v, (pd.Timestamp, datetime)):
-                r[k] = v.isoformat() if hasattr(v, "isoformat") else str(v)
+                # Consistent format for deduplication
+                r[k] = v.strftime("%Y-%m-%d %H:%M:%S%z") if hasattr(v, "strftime") else str(v)
             elif isinstance(v, (float,)) and (pd.isna(v) or v != v):
                 r[k] = None
         

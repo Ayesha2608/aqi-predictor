@@ -327,15 +327,6 @@ def main():
             target_date = (now_khi + timedelta(days=i)).date()
             day_data = df_forecast[df_forecast['date_only'] == target_date]
             v = day_data['aqi_predicted'].max() if not day_data.empty else None
-            
-            # Simple interpolation fallback: if a middle day is missing, try next day's peak as proxy
-            if v is None and i < 3:
-                next_date = (now_khi + timedelta(days=i+1)).date()
-                next_data = df_forecast[df_forecast['date_only'] == next_date]
-                v = next_data['aqi_predicted'].max() if not next_data.empty else None
-                if v:
-                    # Mark as estimated/proxy value
-                    pass
 
             lvl, clr = aqi_level_and_color(v)
             with f_cols[i-1]:

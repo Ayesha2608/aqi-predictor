@@ -166,18 +166,10 @@ def compute_features_from_raw(raw: dict) -> pd.DataFrame:
     ozone = aq.get("ozone", [None] * len(times))
     no2 = aq.get("nitrogen_dioxide", [None] * len(times))
 
-    # Daily weather (Open-Meteo daily = one value per day)
+    # Daily weather mapping
     daily = weather.get("daily", {})
-    daily_times = daily.get("time", [date_str])
-    idx = 0
-    if date_str in daily_times:
-        idx = daily_times.index(date_str)
-    temp_max = daily.get("temperature_2m_max", [None])[idx] if daily.get("temperature_2m_max") else None
-    temp_min = daily.get("temperature_2m_min", [None])[idx] if daily.get("temperature_2m_min") else None
-    precip = daily.get("precipitation_sum", [None])[idx] if daily.get("precipitation_sum") else None
-    humidity = daily.get("relative_humidity_2m_mean", [None])[idx] if daily.get("relative_humidity_2m_mean") else None
-    wind = daily.get("wind_speed_10m_max", [None])[idx] if daily.get("wind_speed_10m_max") else None
-
+    daily_times = daily.get("time", [])
+    
     rows = []
     prev_aqi = None
     for i, t in enumerate(times):
@@ -185,6 +177,19 @@ def compute_features_from_raw(raw: dict) -> pd.DataFrame:
             dt = datetime.fromisoformat(t.replace("Z", "+00:00"))
         except Exception:
             dt = datetime.strptime(t[:19], "%Y-%m-%dT%H:%M:%S")
+        
+        # Determine the date of this hour for weather alignment
+        row_date = dt.strftime("%Y-%m-%d")
+        idx = 0
+        if row_date in daily_times:
+            idx = daily_times.index(row_date)
+        
+        temp_max = daily.get("temperature_2m_max", [None])[idx] if daily.get("temperature_2m_max") else None
+        temp_min = daily.get("temperature_2m_min", [None])[idx] if daily.get("temperature_2m_min") else None
+        precip = daily.get("precipitation_sum", [None])[idx] if daily.get("precipitation_sum") else None
+        humidity = daily.get("relative_humidity_2m_mean", [None])[idx] if daily.get("relative_humidity_2m_mean") else None
+        wind = daily.get("wind_speed_10m_max", [None])[idx] if daily.get("wind_speed_10m_max") else None
+
         hour = dt.hour
         day_of_week = dt.weekday()
         month = dt.month
@@ -220,7 +225,7 @@ def compute_features_from_raw(raw: dict) -> pd.DataFrame:
             "nitrogen_dioxide": no2[i] if i < len(no2) else None,
             "us_aqi": aqi_val,
             "aqi_change_rate": aqi_change_rate,
-            "date": date_str,
+            "date": row_date,
         })
 
     df = pd.DataFrame(rows)
