@@ -1,0 +1,52 @@
+# 🌫️ Air Quality Predictor: Complete Guide (Karachi)
+
+Ayesha, aap ke liye ye poora guide .txt format mein hai taake aap Notepad ya kisi bhi tool mein ise asani se open kar sakein.
+
+---
+
+## 1. Project Overview
+Ye project Karachi ke Air Quality (AQI) ko predict karne ke liye banaya gaya hai. 
+- Isme 3 Machine Learning models (RandomForest, Ridge, LSTM) use ho rahe hain.
+- Data har ghante OpenWeather API se fetch hota hai aur MongoDB Atlas mein save hota hai.
+- Dashboard 72-hour ka forecast dikhata hai.
+
+---
+
+## 2. Setup Instructions (Virtual Environment)
+Agar aap local computer par dobara setup karna chahein:
+1. Terminal mein ye command chalayein:
+   `python -m venv .venv`
+2. Activate karein:
+   `.venv/Scripts/activate`
+3. Dependencies install karein:
+   `pip install -r requirements.txt`
+
+---
+
+## 3. Database & API (Secrets)
+Project ko chalane ke liye aap ko GitHub aur Streamlit mein ye passwords (Secrets) add karne honge:
+
+1. MONGODB_URI: Aapka MongoDB connection string.
+2. MONGODB_DB: `air_quality_db`
+3. OPENWEATHER_API_KEY: Aapki OpenWeatherMap API key.
+4. AQI_CITY: `Karachi`
+
+---
+
+## 4. GitHub Workflows (Automation)
+- `ci.yml`: Code checking ke liye.
+- `feature_pipeline.yml`: Har ghante data fetch karne ke liye.
+- `training_pipeline.yml`: Rozana model retrain karne ke liye.
+
+---
+
+## 5. Deployment Steps
+1. Code ko GitHub par push karein (`git push origin main`).
+2. Streamlit Cloud (share.streamlit.io) par repository connect karein.
+3. Advanced Settings mein Secrets (Step 3 wale) add karein.
+4. Deploy kar dein! 🚀
+
+---
+
+Ye file hamesha aapke paas reference ke liye rahe gi. 
+🌫️📊✨
