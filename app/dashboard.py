@@ -91,10 +91,8 @@ def predict_hourly_forecast():
     # Standardize all features to Karachi time
     df_features[ts_col] = pd.to_datetime(df_features[ts_col], utc=True).dt.tz_convert("Asia/Karachi")
     
-    # Filter for future data starting from the beginning of Tomorrow (local time)
-    # This ensures we don't mix Today's partial data with Tomorrow's forecast
-    tomorrow_start = (now_khi + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    df_future = df_features[df_features[ts_col] >= tomorrow_start].copy()
+    # Filter for data starting from Now (local time) to include Today's remaining hours
+    df_future = df_features[df_features[ts_col] >= now_khi - timedelta(hours=1)].copy()
     
     models = get_cached_models()
     results = []
@@ -104,11 +102,12 @@ def predict_hourly_forecast():
         # Calculate calendar days ahead
         days_ahead = (row_dt.date() - now_khi.date()).days
         
-        # We only want the 3-day window: Tomorrow (1), Day After (2), Next Day (3)
-        if days_ahead < 1 or days_ahead > 3:
+        # We want Today (0), Tomorrow (1), Day After (2), Next Day (3)
+        if days_ahead < 0 or days_ahead > 3:
             continue
             
-        target_day = days_ahead  # Strictly map 1->1, 2->2, 3->3
+        # Map Today (0) to Model 1, others to their respective models
+        target_day = max(1, days_ahead)
         
         # Data Cleaning: skip rows with non-physical weather
         t_val = row.get("temperature_max") or row.get("temp")
@@ -305,16 +304,23 @@ def main():
                     if pd.notna(val):
                         today_aqi = calibrate_aqi(float(val))
                         break
+        
+        # Fallback: if no recent history, show the earliest available forecast (Today's first hour)
+        if today_aqi is None and not df_forecast.empty:
+            today_aqi = df_forecast["aqi_predicted"].iloc[0]
+            aqi_source_label = "Current Predicted"
+        else:
+            aqi_source_label = "Current Observed"
 
     # --- Hero Section: Today's AQI ---
     if today_aqi:
         lvl, clr = aqi_level_and_color(today_aqi)
         st.markdown(f'''
             <div class="hero-card">
-                <div class="hero-label" style="color:{clr};">Current Air Quality</div>
+                <div class="hero-label" style="color:{clr};">{aqi_source_label}</div>
                 <div class="hero-aqi" style="color:{clr};">{today_aqi:.1f}</div>
                 <div class="hero-label" style="color:{clr}; opacity:0.9;">{lvl}</div>
-                <div style="margin-top:1rem; opacity:0.7; font-size:0.9rem;">📍 Karachi Central · Last Updated: {datetime.now().strftime("%I:%M %p")}</div>
+                <div style="margin-top:1rem; opacity:0.7; font-size:0.9rem;">📍 Karachi Central · Sync: {now_khi.strftime("%b %d, %I:%M %p")}</div>
             </div>
         ''', unsafe_allow_html=True)
         
