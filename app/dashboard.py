@@ -276,22 +276,23 @@ def main():
     st.markdown("**Real-time monitoring & 72-hour forecast** · Modern ensemble modeling.")
 
     # --- Top Refresh Action ---
-    # We only show the button if NOT on Streamlit Cloud to prevent subprocess crashes
-    is_cloud = os.getenv("STREAMLIT_SHARING_MODE") == "true" or \
-               "STREAMLIT_SERVER_PORT" in os.environ or \
-               "/mount/src" in os.getcwd()
-    
-    if not is_cloud:
-        if st.button("🔄 Refresh Data (Local)", key="btn_refresh_v13", use_container_width=True):
-            with st.spinner("Refreshing data and running model pipeline..."):
-                try:
-                    subprocess.run(["python", "scripts/master_pipeline.py"], check=True)
-                    st.success("✅ Refresh complete! Latest predictions active.")
+    # Show button in all environments; help user trigger manual sync if automated run is delayed
+    if st.button("🔄 Force Sync & Predict Now", key="btn_manual_sync_v14", use_container_width=True):
+        with st.spinner("Synchronizing with remote APIs and updating models..."):
+            try:
+                # Use sys.executable to ensure we use the same environment
+                import subprocess
+                result = subprocess.run([sys.executable, "scripts/master_pipeline.py"], capture_output=True, text=True, timeout=120)
+                if result.returncode == 0:
+                    st.success("✅ Sync Complete! Dashboard updated with latest real-time data.")
                     st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Refresh failed: {e}")
-    else:
-        st.info("🕒 Global Update: Automated hourly refresh active via GitHub Actions.")
+                else:
+                    st.error(f"❌ Sync Error: {result.stderr}")
+            except subprocess.TimeoutExpired:
+                st.warning("⚠️ Sync is taking longer than expected. Automated background refresh is still active.")
+            except Exception as e:
+                st.error(f"❌ Failed to trigger sync: {e}")
+    
     st.markdown("---")
     
     # --- Load Data ---
