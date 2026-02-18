@@ -267,6 +267,11 @@ def main():
     st.set_page_config(page_title="AQI Predictor — Karachi", page_icon="🌫️", layout="wide")
     inject_custom_css()
 
+    # Use Karachi timezone for correct local date labels everywhere
+    from zoneinfo import ZoneInfo
+    from config.settings import TIMEZONE
+    now_khi = datetime.now(ZoneInfo(TIMEZONE))
+
     st.title("🌫️ Air Quality — Karachi")
     st.markdown("**Real-time monitoring & 72-hour forecast** · Modern ensemble modeling.")
 
@@ -336,11 +341,6 @@ def main():
     st.subheader("📅 3-Day Forecast Outlook")
     f_cols = st.columns(3)
     forecast_labels = ["Tomorrow", "Day After", "Next Day"]
-    
-    # Use Karachi timezone for correct local date labels
-    from zoneinfo import ZoneInfo
-    from config.settings import TIMEZONE
-    now_khi = datetime.now(ZoneInfo(TIMEZONE))
     
     if not df_forecast.empty:
         df_forecast['date_only'] = df_forecast['timestamp'].dt.date
