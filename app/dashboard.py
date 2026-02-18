@@ -80,37 +80,37 @@ def predict_hourly_forecast():
     # Deduplicate: keep the latest record for each unique timestamp
     df_features = df_features.sort_values(ts_col).drop_duplicates(subset=[ts_col], keep='last')
     
-    # Use Karachi time for alignment with local business/forecast days
-    now_khi = datetime.now(timezone(timedelta(hours=5))) # Simple offset as fallback
+    # Use Karachi time for alignment
+    now_khi = datetime.now(timezone(timedelta(hours=5)))
     try:
         from zoneinfo import ZoneInfo
         now_khi = datetime.now(ZoneInfo("Asia/Karachi"))
     except Exception:
         pass
     
-    # Ensure current timestamp is aware and converted to Karachi
+    # Standardize all features to Karachi time
     df_features[ts_col] = pd.to_datetime(df_features[ts_col], utc=True).dt.tz_convert("Asia/Karachi")
     
-    # Filter for future data (from now onwards)
-    df_future = df_features[df_features[ts_col] >= now_khi - timedelta(hours=1)].copy()
+    # Filter for future data starting from the beginning of Tomorrow (local time)
+    # This ensures we don't mix Today's partial data with Tomorrow's forecast
+    tomorrow_start = (now_khi + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    df_future = df_features[df_features[ts_col] >= tomorrow_start].copy()
     
-    if df_future.empty:
-        return pd.DataFrame()
-
     models = get_cached_models()
     results = []
 
-    for i, (_, row) in enumerate(df_future.iterrows()):
+    for _, row in df_future.iterrows():
         row_dt = row[ts_col]
-        # Days ahead based on calendar day
+        # Calculate calendar days ahead
         days_ahead = (row_dt.date() - now_khi.date()).days
         
-        # target_day: 0 (today), 1 (tomorrow), 2 (day after), 3 (next day)
-        # We map to available models (1, 2, 3)
-        target_day = max(1, min(3, days_ahead))
+        # We only want the 3-day window: Tomorrow (1), Day After (2), Next Day (3)
+        if days_ahead < 1 or days_ahead > 3:
+            continue
+            
+        target_day = days_ahead  # Strictly map 1->1, 2->2, 3->3
         
-        # Data Cleaning: skip rows with non-physical weather (often placeholders in DB)
-        # e.g. Temp=0 or Humidity=0 is extremely unlikely/invalid for Karachi
+        # Data Cleaning: skip rows with non-physical weather
         t_val = row.get("temperature_max") or row.get("temp")
         h_val = row.get("humidity")
         if t_val is None or h_val is None or t_val < -10 or h_val <= 0:
