@@ -277,7 +277,7 @@ def main():
 
     # --- Top Refresh Action ---
     # Show button in all environments; help user trigger manual sync if automated run is delayed
-    if st.button("🔄 Force Sync & Predict Now", key="btn_manual_sync_v14", use_container_width=True):
+    if st.button("🔄 Generate Forecast", key="btn_manual_sync_v15", use_container_width=True):
         with st.spinner("Synchronizing with remote APIs and updating models..."):
             try:
                 # Use sys.executable to ensure we use the same environment
