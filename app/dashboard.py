@@ -452,10 +452,9 @@ def main():
                 'date_only': 'Date', 'day_name': 'Day', 'hour_only': 'Time', 'aqi_predicted': 'AQI'
             })
             report_df['Category'] = report_df['AQI'].apply(lambda x: aqi_level_and_color(x)[0])
-            report_df['Type'] = "Predicted"
             report_df['Health_Recommendation'] = report_df['AQI'].apply(get_health_recommendation)
             
-            st.dataframe(report_df, use_container_width=True, hide_index=True)
+            st.dataframe(report_df.sort_values(['Date', 'Time']), use_container_width=True, hide_index=True)
             st.download_button("📄 Download Complete CSV", report_df.to_csv(index=False).encode('utf-8'), "aqi_forecast_hourly.csv", "text/csv")
         else:
             st.info("No hourly forecast available.")
