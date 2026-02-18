@@ -24,8 +24,9 @@ def run_hourly():
     """
     Fetch current/latest data window (Today + next 3 days) → extract features → save to Feature Store.
     """
-    start_dt = datetime.now(timezone.utc)
-    end_dt = start_dt + timedelta(days=3)
+    # Fetch Today - 1 through Today + 4 (6 day window) to ensure all timezones and 3-day forecasts are covered
+    start_dt = datetime.now(timezone.utc) - timedelta(days=1)
+    end_dt = start_dt + timedelta(days=5)
     
     start_date = start_dt.strftime("%Y-%m-%d")
     end_date = end_dt.strftime("%Y-%m-%d")
