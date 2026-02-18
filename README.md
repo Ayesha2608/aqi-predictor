@@ -1,6 +1,9 @@
 # AQI Predictor — Next 3 Days (Serverless)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge.svg)](https://karachi-aqi-predictor26.streamlit.app)
 
 End-to-end ML pipeline to **predict Air Quality Index (AQI)** for your city for the **next 3 days**, using a serverless-friendly stack: Open-Meteo APIs, MongoDB as Feature Store & Model Registry, Scikit-learn + optional TensorFlow, GitHub Actions, and Streamlit.
+
+**Live Dashboard:** [karachi-aqi-predictor26.streamlit.app](https://karachi-aqi-predictor26.streamlit.app)
 
 ## Features
 
