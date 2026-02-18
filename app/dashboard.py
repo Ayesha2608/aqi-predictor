@@ -80,9 +80,19 @@ def predict_hourly_forecast():
     # Deduplicate: keep the latest record for each unique timestamp
     df_features = df_features.sort_values(ts_col).drop_duplicates(subset=[ts_col], keep='last')
     
-    # Use UTC for alignment with MongoDB data
-    now = datetime.now(timezone.utc)
-    df_future = df_features[df_features[ts_col] >= now - timedelta(hours=1)].copy()
+    # Use Karachi time for alignment with local business/forecast days
+    now_khi = datetime.now(timezone(timedelta(hours=5))) # Simple offset as fallback
+    try:
+        from zoneinfo import ZoneInfo
+        now_khi = datetime.now(ZoneInfo("Asia/Karachi"))
+    except Exception:
+        pass
+    
+    # Ensure current timestamp is aware and converted to Karachi
+    df_features[ts_col] = pd.to_datetime(df_features[ts_col], utc=True).dt.tz_convert("Asia/Karachi")
+    
+    # Filter for future data (from now onwards)
+    df_future = df_features[df_features[ts_col] >= now_khi - timedelta(hours=1)].copy()
     
     if df_future.empty:
         return pd.DataFrame()
@@ -91,14 +101,13 @@ def predict_hourly_forecast():
     results = []
 
     for i, (_, row) in enumerate(df_future.iterrows()):
-        hour_offset = (row[ts_col] - now).total_seconds() / 3600
-        # Determine which model to use based on offset
-        if hour_offset <= 24:
-            target_day = 1
-        elif hour_offset <= 48:
-            target_day = 2
-        else:
-            target_day = 3
+        row_dt = row[ts_col]
+        # Days ahead based on calendar day
+        days_ahead = (row_dt.date() - now_khi.date()).days
+        
+        # target_day: 0 (today), 1 (tomorrow), 2 (day after), 3 (next day)
+        # We map to available models (1, 2, 3)
+        target_day = max(1, min(3, days_ahead))
         
         # Data Cleaning: skip rows with non-physical weather (often placeholders in DB)
         # e.g. Temp=0 or Humidity=0 is extremely unlikely/invalid for Karachi
@@ -133,6 +142,12 @@ def predict_hourly_forecast():
 
     df_results = pd.DataFrame(results)
     if not df_results.empty:
+        # Karachi-aware dates/times for labels
+        df_results['timestamp'] = pd.to_datetime(df_results['timestamp'])
+        df_results['date_only'] = df_results['timestamp'].dt.date
+        df_results['hour_only'] = df_results['timestamp'].dt.strftime("%H:%M")
+        df_results['day_name'] = df_results['timestamp'].dt.strftime("%A")
+        
         # Smoothing: Apply rolling median (window=3) to remove single-point spikes
         # This keeps the trend but suppresses spurious data-driven outliers
         df_results['aqi_predicted'] = df_results['aqi_predicted'].rolling(window=3, center=True, min_periods=1).median()
@@ -431,24 +446,17 @@ def main():
     t_rep, t_hist, t_ins, t_health = st.tabs(["📄 Detailed Report", "📜 Historical Overview", "📊 Data Insights", "🫁 Health Guidance"])
     
     with t_rep:
-        st.subheader("Complete Hourly Forecast Report")
         if not df_forecast.empty:
-            report_data = []
-            for _, row in df_forecast.iterrows():
-                val = row["aqi_predicted"]
-                if val is not None:
-                    lvl, _ = aqi_level_and_color(val)
-                    report_data.append({
-                        "Date": row["timestamp"].strftime("%Y-%m-%d"),
-                        "Day": row["timestamp"].strftime("%A"),
-                        "Time": row["timestamp"].strftime("%H:%M:%S"),
-                        "AQI": f"{val:.1f}",
-                        "Category": lvl,
-                        "Type": "Predicted",
-                        "Health_Recommendation": get_health_recommendation(val)
-                    })
-            st.dataframe(pd.DataFrame(report_data), width='stretch', hide_index=True)
-            st.download_button("📄 Download Complete CSV", pd.DataFrame(report_data).to_csv(index=False).encode('utf-8'), "aqi_forecast_hourly.csv", "text/csv")
+            report_df = df_forecast.copy()
+            report_df = report_df[['date_only', 'day_name', 'hour_only', 'aqi_predicted']].rename(columns={
+                'date_only': 'Date', 'day_name': 'Day', 'hour_only': 'Time', 'aqi_predicted': 'AQI'
+            })
+            report_df['Category'] = report_df['AQI'].apply(lambda x: aqi_level_and_color(x)[0])
+            report_df['Type'] = "Predicted"
+            report_df['Health_Recommendation'] = report_df['AQI'].apply(get_health_recommendation)
+            
+            st.dataframe(report_df, use_container_width=True, hide_index=True)
+            st.download_button("📄 Download Complete CSV", report_df.to_csv(index=False).encode('utf-8'), "aqi_forecast_hourly.csv", "text/csv")
         else:
             st.info("No hourly forecast available.")
 
